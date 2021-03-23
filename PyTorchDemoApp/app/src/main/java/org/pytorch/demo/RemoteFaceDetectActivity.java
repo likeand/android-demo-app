@@ -74,8 +74,8 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
     private ArrayList<NamedBox> namedboxpool;
     private SrsCameraView mCameraView;
 
-    private int mWidth = 1080;
-    private int mHeight = 2220;
+    private int mWidth = 1200;
+    private int mHeight = 1920;
     private int TOP_K = Utils.TOP_K;
     private boolean isPermissionGranted = false;
     private ResultRowView[] mResultRowViews = new ResultRowView[TOP_K];
@@ -239,8 +239,8 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
         else
         {
             Log.d(TAG,"************ Best size is NULL ********************");
-            mPublisher.setPreviewResolution(640, 480);
-            mPublisher.setOutputResolution(480, 640);
+            mPublisher.setPreviewResolution(960, 1280);
+            mPublisher.setOutputResolution(1280, 960);
         }
 
         mPublisher.getmCameraView().open_camera();

@@ -100,6 +100,7 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
 
 
 
+
         val embds = Util()._embeddings_from_files
         update_embeddings(embds)
 
@@ -117,6 +118,7 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
             var bitmap = viewFinder.bitmap
             imageView.setImageBitmap(bitmap)
             runOnUiThread {
+                print("screen size is h: " + graphicOverlay.measuredHeight + " w: " + graphicOverlay.measuredWidth)
                 if (bitmap != null) {
                     analyzeImage(bitmap)
                 }
@@ -208,6 +210,7 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
             cameraProvider.unbindAll();
             // Preview
             preview = Preview.Builder()
+                    .setTargetResolution(Size(960, 1280))
                     .build()
                     .also {
                         it.setSurfaceProvider(viewFinder.createSurfaceProvider())

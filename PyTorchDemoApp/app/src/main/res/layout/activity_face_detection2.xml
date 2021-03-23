@@ -35,8 +35,8 @@
 
         <androidx.camera.view.PreviewView
             android:id="@+id/view_finder"
-            android:layout_width="match_parent"
-            android:layout_height="441dp"
+            android:layout_width="1200px"
+            android:layout_height="1600px"
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="false"
             android:layout_alignParentTop="false"

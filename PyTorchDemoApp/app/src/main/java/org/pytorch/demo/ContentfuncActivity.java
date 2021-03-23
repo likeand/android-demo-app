@@ -46,10 +46,10 @@ public class ContentfuncActivity extends Fragment {
         RadioButton glass_local_recog = getActivity().findViewById(R.id.glass_local_recog);
         setBounds(R.mipmap.glassmode,glass_remote_recog);
         setBounds(R.mipmap.glassmode,glass_local_recog);
-        RadioButton shipname_detect = getActivity().findViewById(R.id.shipname_detect);
-        RadioButton shipclass_detect = getActivity().findViewById(R.id.shipclass_detect);
-        setBounds(R.mipmap.ship,shipname_detect);
-        setBounds(R.mipmap.ship,shipclass_detect);
+//        RadioButton shipname_detect = getActivity().findViewById(R.id.shipname_detect);
+//        RadioButton shipclass_detect = getActivity().findViewById(R.id.shipclass_detect);
+//        setBounds(R.mipmap.ship,shipname_detect);
+//        setBounds(R.mipmap.ship,shipclass_detect);
         RadioButton add_crew  = getActivity().findViewById(R.id.btn_add_crew);
         RadioButton other_func = getActivity().findViewById(R.id.btn_other);
         setBounds(R.mipmap.account,add_crew);
@@ -77,13 +77,13 @@ public class ContentfuncActivity extends Fragment {
                 startActivity(new Intent(ContentfuncActivity.this.getActivity(), AddNewCrew.class));
             }
         });
-        shipname_detect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                new Util().resetPassword("001", "00x");
-                new Util().deleteCrewByName("name");
-            }
-        });
+//        shipname_detect.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                new Util().resetPassword("001", "00x");
+//                new Util().deleteCrewByName("name");
+//            }
+//        });
 
     }
 

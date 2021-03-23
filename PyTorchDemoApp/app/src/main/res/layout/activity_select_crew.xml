@@ -10,12 +10,15 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@mipmap/bg_file"
         android:orientation="vertical">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/WHITE"
+            android:alpha="0.5"
             android:theme="@style/AppTheme.NoActionBar.AppBarOverlay"
             app:layout_constraintBottom_toTopOf="@+id/include"
             app:layout_constraintEnd_toEndOf="parent"
@@ -26,7 +29,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:background="@mipmap/bg_file"
+
                 android:textColor="@color/black"
                 app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"
                 app:titleTextColor="@color/black"
