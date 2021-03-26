@@ -97,7 +97,7 @@ public class SideBarActivity extends AppCompatActivity {
         navigation.setSelectedItemId(R.id.navigation_func);
 //        findViewById(R.id.main_vision_click_view).setOnClickListener(v -> startActivity(new Intent(SideBarActivity.this, VisionListActivity.class)));
 //        findViewById(R.id.main_nlp_click_view).setOnClickListener(v -> startActivity(new Intent(SideBarActivity.this, GlassListActivity.class)));
-        Toast.makeText(this, "in sba, token = "+Utils.token, Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, "in sba, token = "+Utils.token, Toast.LENGTH_LONG).show();
     }
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = item -> {

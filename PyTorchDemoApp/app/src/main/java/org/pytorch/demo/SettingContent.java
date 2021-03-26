@@ -65,12 +65,14 @@ public class SettingContent {
         this.fps = fps;
     }
 
-    public SettingContent(String rtmp_addr, String server_addr, Boolean save_file, String decode_method, String resolution, int fps) {
+    public SettingContent(String rtmp_addr, String server_addr, Boolean save_file, String decode_method, String resolution, Integer fps) {
         this.rtmp_addr = rtmp_addr;
         this.server_addr = server_addr;
         this.save_file = save_file;
         this.decode_method = decode_method;
         this.resolution = resolution;
         this.fps = fps;
+    }
+    public SettingContent(){
     }
 }

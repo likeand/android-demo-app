@@ -149,7 +149,8 @@ public class VideoSelectAdapter extends RecyclerView.Adapter<VideoSelectAdapter.
                     dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialog) {
-                            MDToast.makeText(parent.getContext(), "上传成功", Utils.dura_short, Utils.Type_success).show();
+                            MDToast.makeText(parent.getContext(), "上传取消", Utils.dura_short, Utils.Type_success).show();
+
 //                            Toast.makeText(parent.getContext(), "上传成功", Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -170,6 +171,7 @@ public class VideoSelectAdapter extends RecyclerView.Adapter<VideoSelectAdapter.
                         protected void onPostExecute(String result){
                             if (result != null){
                                 MDToast.makeText(parent.getContext(), "上传完成", Utils.dura_short, Utils.Type_success).show();
+                                refresh_lv0();
 //                                Toast.makeText(parent.getContext(), "上传完成",Toast.LENGTH_SHORT).show();
                                 System.out.println(result);
                             }else{

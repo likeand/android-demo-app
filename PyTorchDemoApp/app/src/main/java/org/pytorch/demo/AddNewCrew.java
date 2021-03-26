@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.valdesekamdem.library.mdtoast.MDToast;
 
 import org.pytorch.IValue;
 import org.pytorch.Module;
@@ -59,6 +60,28 @@ public class AddNewCrew extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+
+        mModule = null;
+        encoder = null;
+        runOnUiThread(() -> {
+            if (mModule == null) {
+                try {
+                    MDToast.makeText(AddNewCrew.this, "读取模型中，请稍等...", MDToast.LENGTH_SHORT, MDToast.TYPE_INFO).show();
+
+                    final String moduleFileAbsoluteFilePath = new File(
+                            Utils.assetFilePath(AddNewCrew.this, "mobile_model2.pt")).getAbsolutePath();
+                    mModule = Module.load(moduleFileAbsoluteFilePath);
+                    final String encoderFileAbsoluteFilePath = new File(
+                            Utils.assetFilePath(AddNewCrew.this, "encoder1.pt")).getAbsolutePath();
+                    encoder = Module.load(encoderFileAbsoluteFilePath);
+                    MDToast.makeText(AddNewCrew.this, "读取模型完成", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
+
+                }catch (Exception e)
+                {e.printStackTrace();}
+            }
+        });
+
         init_button();
 
 
@@ -66,6 +89,8 @@ public class AddNewCrew extends AppCompatActivity {
     private String crewID;
     private Bitmap crewFace;
 
+    private Module mModule;
+    private Module encoder;
     private final String TAG = getClass().getSimpleName();
     private static final String[] PERMISSIONS = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
     private static final int REQUEST_PERMISSION_CODE = 267;
@@ -110,6 +135,7 @@ public class AddNewCrew extends AppCompatActivity {
 
                 AppCompatEditText textInputEditText = findViewById(R.id.input_id);
                 crewID = textInputEditText.getText().toString();
+                String pos = ((AppCompatEditText)findViewById(R.id.input_pos)).getText().toString();
                 if(crewFace == null || crewID.equals("")){
                     Toast.makeText(AddNewCrew.this,"没有设置人脸或id"+crewID, Toast.LENGTH_SHORT).show();
                 }
@@ -117,19 +143,7 @@ public class AddNewCrew extends AppCompatActivity {
                     //TODO 1. read model 2. calculate encoding of picture 3.add face encoding and id to a new json
 
                     // 1. read model
-                    Module mModule = null;
-                    Module encoder = null;
-                    if (mModule == null) {
-                        try {
-                            final String moduleFileAbsoluteFilePath = new File(
-                                    Utils.assetFilePath(AddNewCrew.this, "mobile_model2.pt")).getAbsolutePath();
-                            mModule = Module.load(moduleFileAbsoluteFilePath);
-                            final String encoderFileAbsoluteFilePath = new File(
-                                    Utils.assetFilePath(AddNewCrew.this, "encoder1.pt")).getAbsolutePath();
-                            encoder = Module.load(encoderFileAbsoluteFilePath);
-                        }catch (Exception e)
-                        {e.printStackTrace();}
-                    }
+
 
                     // 2. extract face from picture
                     Bitmap bitmap = crewFace;
@@ -167,20 +181,20 @@ public class AddNewCrew extends AppCompatActivity {
                         Bitmap bitmap_c = cropBitmap(bitmap, box_c);
 
                         File bitmap_file = new File(new Util().project_path, "tmp.jpg");
-                        if (!bitmap_file.exists()) {
-                            try {
+
+                        try {
+                            if (!bitmap_file.exists()) {
                                 bitmap_file.createNewFile();
-                                FileOutputStream fileOutputStream = new FileOutputStream(bitmap_file);
-                                bitmap_c.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
-                                fileOutputStream.flush();
-                                fileOutputStream.close();
-
-
-                            } catch (IOException exception) {
-                                exception.printStackTrace();
                             }
+                            FileOutputStream fileOutputStream = new FileOutputStream(bitmap_file);
+                            bitmap_c.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                            fileOutputStream.flush();
+                            fileOutputStream.close();
+                        } catch (IOException exception) {
+                            exception.printStackTrace();
                         }
-                        new Util().UploadNewCrewInfo("hj", "hj", "ls", "111", bitmap_file);
+
+                        new Util().UploadNewCrewInfo(crewID, "", pos, "0", bitmap_file);
 
 
 

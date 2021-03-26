@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat;
 //import android.support.v7.app.AppCompatActivity;
 //import android.support.v7.content.ContextCompat;
 import android.util.Log;
+import android.util.Size;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -239,8 +240,9 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
         else
         {
             Log.d(TAG,"************ Best size is NULL ********************");
-            mPublisher.setPreviewResolution(960, 1280);
-            mPublisher.setOutputResolution(1280, 960);
+            Size size = new Util().GetSize();
+            mPublisher.setOutputResolution(size.getHeight(), size.getWidth());
+            mPublisher.setPreviewResolution(size.getWidth(), size.getHeight());
         }
 
         mPublisher.getmCameraView().open_camera();
@@ -296,8 +298,8 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
         btnDetect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bitmap bitmap = mPublisher.getBitmap();
-                imageView.setImageBitmap(bitmap);
+//                Bitmap bitmap = mPublisher.getBitmap();
+//                imageView.setImageBitmap(bitmap);
                 String msg = "{\"event\": \"detect\"}";
 //                    webSocket.sendText(msg);
                 if (server_state_ready){
@@ -398,26 +400,21 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
                     // need further operation
                     // put box and info into boxpool
 
-                    btnDetect.setText("检测");
-                    btnDetect.setEnabled(true);
-
-//                    NamedBox namedBox = new NamedBox(message);
-//                    namedboxpool.clear();
-                    if (message != null)
+                    runOnUiThread(()->{
+                                btnDetect.setText("检测");
+                                btnDetect.setEnabled(true);
+                                namedboxpool.clear();
+                            });
+                    if (message.contains("ready"))
                     {
-
-                        if (message.contains("ready"))
-                        {
-                            server_state_ready = true;
-                            Toast.makeText(RemoteFaceDetectActivity.this, "ws连接成功", Toast.LENGTH_SHORT).show();
-                        }
-//                        System.out.println("in listener message is " + message);
-                        if (server_state_ready)
-                            updateNamedboxpool(message);
-//                        namedboxpool.add(namedBox);
+                        server_state_ready = true;
+                        Toast.makeText(RemoteFaceDetectActivity.this, "ws连接成功", Toast.LENGTH_SHORT).show();
+                    }else if (server_state_ready){
+                        updateNamedboxpool(message);
+                        System.out.println("in if updated nbp");
                     }
-                    else
-                        System.out.println("in onTextMessage message is null");
+
+                    System.out.println("in before get mw,mh");
                     int w = mCameraView.getMeasuredWidth();
                     int h = mCameraView.getMeasuredHeight();
                     System.out.println("in onTextMessage w:"+w+", h:"+h);
@@ -432,14 +429,7 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
                 }
 
             });
-//            webSocket.addListener(new WebSocketAdapter(){
-//                @Override
-//                public void on(WebSocket webSocket, byte[] bytes) throws Exception {
-//                    System.out.println("in binary message listener received bytes of size " + bytes.length);
-//                }
 
-//            });
-//            webSocket.sendText("String websocket");
         }catch (IOException ioe)
         {
             System.out.println(ioe.toString());
@@ -467,6 +457,7 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
     // [{"topk": ["TN", "DH", "LJJ"], "box": [-24.315364837646484, 207.6920166015625, 189.6284942626953, 450.4494934082031], "distances": [0.2739424407482147, 0.33132535219192505, 0.35604554414749146]}]
     private void updateNamedboxpool(String jsonString){
         try{
+            System.out.println("in update nbp json string is "+jsonString);
             JSONObject jsonObject = new JSONObject(jsonString);
             int count = jsonObject.getInt("count");
 //            int count = jsonObject.length();
@@ -501,19 +492,33 @@ public class RemoteFaceDetectActivity extends AppCompatActivity implements Fauca
         }catch (JSONException jsonException)
         {
             jsonException.printStackTrace();
+        }catch (Exception e)
+        {
+            System.out.println("in exception e is ");
+            e.printStackTrace();
         }
     }
     private void updateUI(NamedBox namedBox){
         if (namedBox != null){
 
 //            imageView.setImageBitmap(result.bitmap_c);
+            Utils.convertDis2Prob(namedBox.id_k, namedBox.prob_k);
+            for (int i = 0; i < TOP_K; i++)
+            {
+                ResultRowView rowView = mResultRowViews[i];
 
+                rowView.nameTextView.setText("");
+                rowView.scoreTextView.setText("");
+                rowView.setProgressState(false);
+            }
             for (int i = 0; i < TOP_K; i++) {
                 final ResultRowView rowView = mResultRowViews[i];
-                rowView.nameTextView.setText(namedBox.id_k[i]);
-                rowView.scoreTextView.setText(String.format(Locale.US, SCORES_FORMAT,
-                        namedBox.prob_k[i]));
-                rowView.setProgressState(false);
+                if(namedBox.prob_k[i]>0){
+                    rowView.nameTextView.setText(namedBox.id_k[i]);
+                    rowView.scoreTextView.setText(String.format(Locale.US, SCORES_FORMAT,
+                            namedBox.prob_k[i]));
+                    rowView.setProgressState(false);
+                }
             }
         }
     }

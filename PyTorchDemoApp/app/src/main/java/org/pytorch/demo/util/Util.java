@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.util.Size;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -112,6 +113,21 @@ public class Util {
     }
 
     public String deliminator = "\\${10,}";
+
+
+    public Size GetSize()
+    {
+        if (settingContent.getResolution() == null)
+            return new Size(1024, 768);
+
+        switch(settingContent.getResolution()){
+            case "1920x1080": return new Size(1920, 1080);
+            case "1280x960": return new Size(1280, 960);
+            case "1600x900": return new Size(1600, 900);
+            case "800x600": return new Size(800, 600);
+            default: return new Size(1024, 768);
+        }
+    }
 
     public String generateFileName(){
         return "" + System.currentTimeMillis();
@@ -665,9 +681,14 @@ public class Util {
         }
     }
     public SettingContent GetSettingContent(){
-        String json = GetLocalJson().toString();
-        Gson gson = new Gson();
-        return gson.fromJson(json, SettingContent.class);
+        JSONObject jsonObject = GetLocalJson();
+        if (jsonObject != null){
+            String json = jsonObject.toString();
+            Gson gson = new Gson();
+            return gson.fromJson(json, SettingContent.class);
+        }
+        return new SettingContent();
+
     }
 
     public void SetSettingContent(SettingContent settingContent) throws IOException {
@@ -686,6 +707,8 @@ public class Util {
     }
     public String GetToken(){
 //        SettingContent settingContent = GetSettingContent();
+        if (settingContent == null)
+            return null;
         return settingContent.getToken();
     }
 
@@ -1083,7 +1106,7 @@ public class Util {
                 exception.printStackTrace();
             }
 
-            int name_pos = str.lastIndexOf(name);
+            int name_pos = str.lastIndexOf("\"" + name + "\"");
             String str1 = str.substring(0, name_pos);
             String str2 = str.substring(name_pos);
             int str1_end = str1.lastIndexOf("$");
@@ -1110,6 +1133,7 @@ public class Util {
                 str = get_embedding_from_file(f);
             } catch (IOException exception) {
                 exception.printStackTrace();
+                return null;
             }
             String[] strings = str.split(deliminator);
             for (String s : strings){

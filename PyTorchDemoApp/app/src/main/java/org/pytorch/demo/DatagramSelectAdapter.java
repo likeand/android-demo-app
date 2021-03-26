@@ -241,6 +241,7 @@ public class DatagramSelectAdapter extends RecyclerView.Adapter<DatagramSelectAd
                                                         // Continue with delete operation
                                                         new Util().delete_datagram(name);
                                                         MDToast.makeText(parent.getContext(), "文件已删除", Utils.dura_short, Utils.Type_success).show();
+                                                        refresh_lv1();
                                                     }
                                                 })
 
@@ -266,8 +267,9 @@ public class DatagramSelectAdapter extends RecyclerView.Adapter<DatagramSelectAd
 
     private void refresh_lv1() {
         String[] filenames = new Util().GetLocalDatagrams();
-        MDToast.makeText(parent.getContext(), "刷新完成", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
         updateListView1(filenames);
+        MDToast.makeText(parent.getContext(), "刷新完成", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
+
     }
 
     @SuppressLint("StaticFieldLeak")

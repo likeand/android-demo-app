@@ -81,97 +81,125 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
 
         setContentView(R.layout.activity_face_detection2)
 
-        viewFinder = findViewById(R.id.view_finder)
-        captureButton = findViewById(R.id.capture_button)
-        btn_getImage = findViewById(R.id.btn_getImage)
-        imageView = findViewById(R.id.imageView)
-        graphicOverlay = findViewById(R.id.graphicOverlay)
-        graphicOverlay.bringToFront()
-        switch_cam = findViewById(R.id.img_view_switch)
-        switch_cam.bringToFront()
-//        setBounds(R.mipmap.switch_camera, switch_cam)
-        namedEmbeddings = ArrayList()
-        namedboxpool = ArrayList()
-
-
-        mResultRowViews[0] = findViewById(R.id.image_classification_top1_result_row)
-        mResultRowViews[1] = findViewById(R.id.image_classification_top2_result_row)
-        mResultRowViews[2] = findViewById(R.id.image_classification_top3_result_row)
-
-
-
-
         val embds = Util()._embeddings_from_files
-        update_embeddings(embds)
+        if (embds == null || "".equals(embds))
+        {
+            MDToast.makeText(this@FaceDetectionActivity2, "没有数据包，请去本地文件下载", MDToast.LENGTH_LONG, MDToast.TYPE_WARNING).show()
+            this.finish();
 
-        // Request camera permissions
-        if (allPermissionsGranted()) {
-            viewFinder.post { startCamera() }
-        } else {
-            ActivityCompat.requestPermissions(
-                    this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-        }
+        }else{
+
+            viewFinder = findViewById(R.id.view_finder)
+            captureButton = findViewById(R.id.capture_button)
+            btn_getImage = findViewById(R.id.btn_getImage)
+            imageView = findViewById(R.id.imageView)
+            graphicOverlay = findViewById(R.id.graphicOverlay)
+            graphicOverlay.bringToFront()
+            switch_cam = findViewById(R.id.img_view_switch)
+            switch_cam.bringToFront()
+//        setBounds(R.mipmap.switch_camera, switch_cam)
+            namedEmbeddings = ArrayList()
+            namedboxpool = ArrayList()
 
 
+            mResultRowViews[0] = findViewById(R.id.image_classification_top1_result_row)
+            mResultRowViews[1] = findViewById(R.id.image_classification_top2_result_row)
+            mResultRowViews[2] = findViewById(R.id.image_classification_top3_result_row)
 
-        btn_getImage.setOnClickListener { view : View ->
-            var bitmap = viewFinder.bitmap
-            imageView.setImageBitmap(bitmap)
+
             runOnUiThread {
-                print("screen size is h: " + graphicOverlay.measuredHeight + " w: " + graphicOverlay.measuredWidth)
-                if (bitmap != null) {
-                    analyzeImage(bitmap)
+                if (mModule == null || encoder == null) {
+
+                    try {
+                        MDToast.makeText(this@FaceDetectionActivity2, "读取模型中，请稍等...", MDToast.LENGTH_SHORT, MDToast.TYPE_INFO).show()
+
+                        val moduleFileAbsoluteFilePath = File(
+                                Utils.assetFilePath(this, "mobile_model2.pt")).absolutePath
+                        mModule = Module.load(moduleFileAbsoluteFilePath)
+                        val encoderFileAbsoluteFilePath = File(
+                                Utils.assetFilePath(this, "encoder1.pt")).absolutePath
+                        encoder = Module.load(encoderFileAbsoluteFilePath)
+                        MDToast.makeText(this@FaceDetectionActivity2, "读取模型完成", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show()
+
+                    } catch (e: Exception) {
+                        MDToast.makeText(this, "读取模型时出错", MDToast.LENGTH_LONG, MDToast.TYPE_ERROR).show()
+                        e.printStackTrace()
+                    }
                 }
             }
-        }
 
-        switch_cam.setOnClickListener{ view : View ->
-            if(lensFacing == CameraSelector.DEFAULT_BACK_CAMERA) {
-                lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA
-                bindCameraUseCases()
-            }
-            else{
-                lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
-                bindCameraUseCases()
-            }
-        }
 
-        captureButton.setOnClickListener {
-            if (captureButton.text.equals("录像")) {
-                captureButton.setBackgroundColor(Color.GREEN)
-                captureButton.setText("录像中...")
-                switch_cam.isEnabled = false
-                val video_dir = File(Util().video_path)
-                if (!video_dir.exists()) {
-                    video_dir.mkdir()
+
+            update_embeddings(embds)
+
+            // Request camera permissions
+            if (allPermissionsGranted()) {
+                viewFinder.post { startCamera() }
+            } else {
+                ActivityCompat.requestPermissions(
+                        this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            }
+
+
+
+            btn_getImage.setOnClickListener { view: View ->
+                var bitmap = viewFinder.bitmap
+                imageView.setImageBitmap(bitmap)
+                runOnUiThread {
+                    print("screen size is h: " + graphicOverlay.measuredHeight + " w: " + graphicOverlay.measuredWidth)
+                    if (bitmap != null) {
+                        analyzeImage(bitmap)
+                    }
                 }
-                val child = Util().generateFileName()
-                val file = File(video_dir, "$child.mp4")
-                videoCapture.startRecording(file, ContextCompat.getMainExecutor(this), object: VideoCapture.OnVideoSavedCallback{
-                    override fun onVideoSaved(file: File) {
-                        MDToast.makeText(this@FaceDetectionActivity2,"文件保存到$file", MDToast.LENGTH_LONG, MDToast.TYPE_INFO).show()
-                        Log.i(tag, "Video File : $file")
-                    }
+            }
 
-                    override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
-                        Log.i(tag, "Video Error: $message")
+            switch_cam.setOnClickListener{ view: View ->
+                if(lensFacing == CameraSelector.DEFAULT_BACK_CAMERA) {
+                    lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA
+                    bindCameraUseCases()
+                }
+                else{
+                    lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
+                    bindCameraUseCases()
+                }
+            }
+
+            captureButton.setOnClickListener {
+                if (captureButton.text.equals("录像")) {
+                    captureButton.setBackgroundColor(Color.GREEN)
+                    captureButton.setText("录像中...")
+                    switch_cam.isEnabled = false
+                    val video_dir = File(Util().video_path)
+                    if (!video_dir.exists()) {
+                        video_dir.mkdir()
                     }
+                    val child = Util().generateFileName()
+                    val file = File(video_dir, "$child.mp4")
+                    videoCapture.startRecording(file, ContextCompat.getMainExecutor(this), object : VideoCapture.OnVideoSavedCallback {
+                        override fun onVideoSaved(file: File) {
+                            MDToast.makeText(this@FaceDetectionActivity2, "文件保存到$file", MDToast.LENGTH_LONG, MDToast.TYPE_INFO).show()
+                            Log.i(tag, "Video File : $file")
+                        }
+
+                        override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
+                            Log.i(tag, "Video Error: $message")
+                        }
 
 //                    override fun onError(videoCaptureError: VideoCapture.VideoCaptureError, message: String, cause: Throwable?) {
 ////                        TODO("Not yet implemented")
 //                        Log.i(tag, "Video Error: $message")
 //                    }
-                })
+                    })
 
-            } else if (captureButton.text.equals("录像中...")) {
-                captureButton.setBackgroundColor(Color.WHITE)
-                captureButton.setText("录像")
-                videoCapture.stopRecording()
-                switch_cam.isEnabled = true
-                Log.i(tag, "Video File stopped")
+                } else if (captureButton.text.equals("录像中...")) {
+                    captureButton.setBackgroundColor(Color.WHITE)
+                    captureButton.setText("录像")
+                    videoCapture.stopRecording()
+                    switch_cam.isEnabled = true
+                    Log.i(tag, "Video File stopped")
+                }
+                false
             }
-            false
-        }
 
 //        captureButton.setOnTouchListener { _, event ->
 //            if (event.action == MotionEvent.ACTION_DOWN) {
@@ -199,6 +227,8 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
 //            }
 //            false
 //        }
+        }
+
     }
     private fun bindCameraUseCases() {
         // Make sure that there are no other use cases bound to CameraX
@@ -234,7 +264,7 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
                 cameraProvider.bindToLifecycle(
                         this, cameraSelector, preview, videoCapture)
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e("tag", "Use case binding failed", exc)
             }
 
@@ -369,19 +399,7 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
         var moduleForwardDuration: Long = 0
         var moduleAnalysisDuration: Long = 0
         try {
-            if (mModule == null || encoder == null) {
-                try {
-                    val moduleFileAbsoluteFilePath = File(
-                            Utils.assetFilePath(this, "mobile_model2.pt")).absolutePath
-                    mModule = Module.load(moduleFileAbsoluteFilePath)
-                    val encoderFileAbsoluteFilePath = File(
-                            Utils.assetFilePath(this, "encoder1.pt")).absolutePath
-                    encoder = Module.load(encoderFileAbsoluteFilePath)
-                } catch (e: Exception) {
-                    MDToast.makeText(this, "读取模型时出错", MDToast.LENGTH_LONG, MDToast.TYPE_ERROR).show()
-                    e.printStackTrace()
-                }
-            }
+
             bitmap2show = bitmap
             val startTime = SystemClock.elapsedRealtime()
             val mean = floatArrayOf(0.49804f, 0.49804f, 0.49804f)
@@ -445,7 +463,7 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
         } else {
             var bitmap_c: Bitmap? = null
             bitmap_c = cropBitmap(bitmap2show, midbox.rect)
-            updateUI(arrayOf(midbox.id_k[0], midbox.id_k[1], midbox.id_k[2]), floatArrayOf(midbox.prob_k[0], midbox.prob_k[1], midbox.prob_k[2]), bitmap_c)
+            updateUI(midbox.id_k, midbox.prob_k, bitmap_c)
         }
     }
 
@@ -454,11 +472,22 @@ class FaceDetectionActivity2 : AppCompatActivity(), LifecycleOwner {
         if (bitmap_c != null) {
             imageView.setImageBitmap(bitmap_c)
             convertDis2Prob(ids, probs)
-            for (i in 0 until Utils.TOP_K) {
+            for (i in 0 until TOP_K) {
+                val rowView = mResultRowViews[i]!!
+                rowView.nameTextView.text = ""
+                rowView.scoreTextView.text = ""
+                rowView.setProgressState(false)
+            }
+            println("ids " + ids.size)
+            println("probs " + probs.size)
+            for (i in ids.indices) {
                 val rowView:ResultRowView? = mResultRowViews[i]
-                rowView?.nameTextView?.setText(ids.get(i))
-                rowView?.scoreTextView?.text = String.format(SCORES_FORMAT, probs[i])
-                rowView?.setProgressState(false)
+                if (probs[i] > 0){
+                    rowView?.nameTextView?.setText(ids.get(i))
+                    rowView?.scoreTextView?.text = String.format(SCORES_FORMAT, probs[i])
+                    rowView?.setProgressState(false)
+                }
+
             }
         }
 

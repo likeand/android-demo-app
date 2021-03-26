@@ -43,7 +43,10 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.content_select_face_datagram, parent, false);
         this.parent = parent;
         crewArrayList = new Util().get_all_crews();
-        System.out.println("in create crew array list len is " + crewArrayList.size());
+        if (crewArrayList == null){
+            MDToast.makeText(parent.getContext(), "没有本地文件，请去下载", MDToast.LENGTH_SHORT, MDToast.TYPE_INFO).show();
+        }
+//        System.out.println("in create crew array list len is " + crewArrayList.size());
 
         return new ViewPagerViewHolder(view);
     }
@@ -72,59 +75,7 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
                     new Util().delete_by_name(name, filename);
                     MDToast.makeText(parent.getContext(), "成功删除", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
                 }
-//                public void upload_dialog(String filename){
-////                    alertDialog.hide();
-//                    alertDialog.dismiss();
-//                    System.out.println("before create pd");
-//                    ProgressDialog dialog = new ProgressDialog(parent.getContext());
-//                    dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-//                    dialog.setCancelable(false);
-//                    dialog.setCanceledOnTouchOutside(false);
-//                    dialog.setTitle("上传中");
-//                    System.out.println("before setting listener");
-//                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-//                        @Override
-//                        public void onDismiss(DialogInterface dialog) {
-//                            MDToast.makeText(parent.getContext(), "上传成功", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
-//                        }
-//                    });
-//                    dialog.setMessage("正在上传，请稍等");
-//                    System.out.println("before show");
-//                    dialog.show();
-////                    dialog.setMax(100);
-//
-//                    Util util = new Util();
-//                    new AsyncTask<String, Integer, String>(){
-//                        @Override
-//                        protected String doInBackground(String... arg0){
-//                            String res = util.UploadVideoByName(arg0[0]);
-//                            return res;
-//                        }
-//
-//                        protected void onPostExecute(String result){
-//                            if (result != null){
-//                                MDToast.makeText(parent.getContext(), "上传完成",MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
-//                                System.out.println(result);
-//                            }else{
-//                                MDToast.makeText(parent.getContext(), "上传失败，检查网络或服务器",MDToast.LENGTH_SHORT, MDToast.TYPE_WARNING).show();
-//                            }
-//                        }
-//                    }.execute(filename);
-//
-//                    System.out.println("before while");
-//                    while(util.upload_progress < 0.99){
-//                        System.out.println("in while up is "+ util.upload_progress);
-//                        dialog.setProgress((int)(100 * util.upload_progress));
-//                        try {
-//                            Thread.sleep(400);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-////                    Toast.makeText(parent.getContext(),"上传成功", Toast.LENGTH_SHORT).show();
-//                    dialog.dismiss();
-//
-//                }
+
 
                 @Override
                 @SuppressLint("StaticFieldLeak")
@@ -146,6 +97,25 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
                                     if(i==0)//预览
                                     {
                                         //TODO call media here
+                                        File file = new File(new Util().datagram_path , filename);
+                                        System.out.println("in onclick datagram path is " + file.getAbsolutePath());
+                                        Intent intent = new Intent(Intent.ACTION_VIEW);
+
+
+                                        if (file.exists()){
+                                            Uri contentUri = FileProvider.getUriForFile(parent.getContext(), "authority", file);
+//                                            Uri uri = Uri.fromFile(file);
+                                            parent.getContext().grantUriPermission(parent.getContext().getPackageName(), contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                                            String type = Utils.getMIMEType(file);
+                                            System.out.println("type is " + type);
+                                            System.out.println("uri is " + contentUri.getPath());
+                                            intent.setDataAndType(contentUri, type);
+                                            parent.getContext().startActivity(intent);
+                                            MDToast.makeText(parent.getContext(), "成功打开", Utils.dura_short, Utils.Type_success).show();
+                                        }else{
+                                            MDToast.makeText(parent.getContext(), "文件不存在，文件路径错误", Utils.dura_short, Utils.Type_error).show();
+                                        }
                                     }
                                     else if (i == 1)// 删除
                                     {
@@ -273,7 +243,7 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
                                     {
                                         //TODO call media here
                                         File file = new File(new Util().datagram_path , filename);
-                                        System.out.println("in onclick video path is " + file.getAbsolutePath());
+                                        System.out.println("in onclick datagram path is " + file.getAbsolutePath());
                                         Intent intent = new Intent(Intent.ACTION_VIEW);
 
 
@@ -294,7 +264,8 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
                                     }
                                     else if (i == 1)// 上传
                                     {
-                                        upload_dialog(name);
+                                        MDToast.makeText(parent.getContext(), "服务器尚没有该功能", MDToast.LENGTH_SHORT,MDToast.TYPE_INFO).show();
+//                                        upload_dialog(name);
                                     }
                                     else if (i == 2)// 删除
                                     {
@@ -308,6 +279,8 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
                                                     public void onClick(DialogInterface dialog, int which) {
                                                         // Continue with delete operation
                                                         delete_by_name(name, filename);
+                                                        refresh_lv0();
+                                                        refresh_lv1();
                                                     }
                                                 })
 
@@ -315,6 +288,7 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
                                                 .setNegativeButton(android.R.string.no, null)
                                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                                 .show();
+
                                     }
 //                                    Toast.makeText(parent.getContext(), "点的是：" + choices[i], Toast.LENGTH_SHORT).show();
                                 }
@@ -346,6 +320,8 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
 
 
     public void updateListView1(ArrayList<Util.Crew> crewArrayList){
+        if (crewArrayList == null)
+            return;
         ArrayList<Map<String,String>> list = new ArrayList<>();
         for (int i = 0; i < crewArrayList.size(); i++){
             String filename = crewArrayList.get(i).getCrew_file().getName();
@@ -372,6 +348,8 @@ public class CrewSelectAdapter extends RecyclerView.Adapter<CrewSelectAdapter.Vi
     }
 
     public void updateListView0(ArrayList<Util.Crew> crewArrayList){
+        if (crewArrayList == null)
+            return;
         ArrayList<Map<String,String>> list = new ArrayList<>();
         for (int i = 0; i < crewArrayList.size(); i++){
             String filename = crewArrayList.get(i).getCrew_file().getName();

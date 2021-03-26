@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
+import com.valdesekamdem.library.mdtoast.MDToast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +32,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.pytorch.demo.util.Util;
 
 import java.io.IOException;
 import java.util.concurrent.AbstractExecutorService;
@@ -58,7 +60,6 @@ public class WelcomeActivity extends AppCompatActivity{
     private Button AccountLogin;
     private Button online_loginbtn;
 //    private Button offline_loginbtn;
-
 //    @Override
 //    public void onPointerCaptureChanged(boolean hasCapture) {
 //    }
@@ -81,13 +82,22 @@ public class WelcomeActivity extends AppCompatActivity{
         setContentView(R.layout.activity_welcome);
 
         //找到控件
-
+        Utils.closeAndroidPDialog();
         AccountLogin = findViewById(R.id.btn_AccountLogin);
         AccountLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(WelcomeActivity.this, AccountLoginActivity.class);
-                startActivity(intent);
+                Util util = new Util();
+                if (util.settingContent != null){
+                    if (!"".equals(util.settingContent.getServer_addr()) && util.settingContent.getServer_addr() != null)
+                    {
+                        Intent intent = new Intent(WelcomeActivity.this, AccountLoginActivity.class);
+                        startActivity(intent);
+                    }
+                    else
+                        MDToast.makeText(getApplicationContext(), "请直接登录并设置服务器地址", MDToast.LENGTH_LONG, MDToast.TYPE_WARNING ).show();
+                }
+
             }
         });
 //        mEtUser = findViewById(R.id.et_1);
@@ -110,10 +120,26 @@ public class WelcomeActivity extends AppCompatActivity{
         //重写点击事件的处理方法onClick()
         online_loginbtn.setOnClickListener(v -> {
             //显示Toast信息
-            Toast.makeText(getApplicationContext(), "你点击了按钮", Toast.LENGTH_SHORT).show();
-//            check_password();
-            Intent intent = new Intent(WelcomeActivity.this, SideBarActivity.class);
-            startActivity(intent);
+//
+            Util util = new Util();
+            if (util.GetToken() != null){
+                Intent intent = new Intent(WelcomeActivity.this, SideBarActivity.class);
+                startActivity(intent);
+            }else{
+                if (util.settingContent != null){
+                    if (!"".equals(util.settingContent.getServer_addr()) && util.settingContent.getServer_addr() != null)
+                        MDToast.makeText(getApplicationContext(), "第一次登录必须使用账户登录获取token", MDToast.LENGTH_LONG, MDToast.TYPE_WARNING ).show();
+                    else
+                    {
+                        MDToast.makeText(getApplicationContext(), "请设置服务器地址", MDToast.LENGTH_LONG, MDToast.TYPE_WARNING ).show();
+
+                        Intent intent = new Intent(WelcomeActivity.this, SideBarActivity.class);
+                        startActivity(intent);
+                    }
+                }
+
+            }
+
         });
 
         requestPermission_rfda();

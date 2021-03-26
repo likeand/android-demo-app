@@ -15,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -31,7 +32,7 @@ import org.pytorch.demo.util.Util;
 import java.io.IOException;
 import java.lang.reflect.Array;
 
-public class SetupMenuActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class SetupMenuActivity extends AppCompatActivity implements Spinner.OnItemSelectedListener {
 
     AppCompatEditText rtmp_uri;
     AppCompatEditText server_uri;
@@ -66,8 +67,10 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
                 R.array.fps_array, android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
         adapter_fps.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
         // Apply the adapter to the spinner
         spinner_fps.setAdapter(adapter_fps);
+        spinner_fps.setOnItemSelectedListener(this);
 
         spinner_resolution = findViewById(R.id.spinner_resolution);
         ArrayAdapter<CharSequence> adapter_resolutions = ArrayAdapter.createFromResource(this,
@@ -76,6 +79,7 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
         adapter_resolutions.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner_resolution.setAdapter(adapter_resolutions);
+        spinner_resolution.setOnItemSelectedListener(this);
 
         load_setting();
 
@@ -89,6 +93,7 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
                 exception.printStackTrace();
             }
             MDToast.makeText(SetupMenuActivity.this, "保存成功", MDToast.LENGTH_SHORT, MDToast.TYPE_SUCCESS).show();
+            SetupMenuActivity.this.finish();
         });
 
         findViewById(R.id.Return).setOnClickListener(new View.OnClickListener() {
@@ -108,6 +113,7 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
             method = "hard";
         }
 
+        System.out.println("in sma rs is " + resolution_selected + " fs is " + fps_selected);
         SettingContent settingContent = new SettingContent(
                 rtmp_uri.getText().toString(),
                 server_uri.getText().toString(),
@@ -151,6 +157,7 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
             for (; res_selection < resolution_array.length; res_selection++) {
                 if (resolution_array[res_selection].equals(settingContent.getResolution())) {
                     spinner_resolution.setSelection(res_selection);
+                    resolution_selected = resolution_array[res_selection];
                     break;
                 }
             }
@@ -160,6 +167,7 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
             for (; fps_selection < fps_array.length; fps_selection++) {
                 if (fps_array[fps_selection] == settingContent.getFps()) {
                     spinner_fps.setSelection(fps_selection);
+                    fps_selected = fps_array[fps_selection];
                     break;
                 }
             }
@@ -171,15 +179,25 @@ public class SetupMenuActivity extends AppCompatActivity implements AdapterView.
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if(view.getId() == R.id.spinner_fps){
-            Resources r = getResources();
-            int[] fps_array = r.getIntArray(R.array.fps_array);
-            fps_selected = fps_array[position];
-        }else if (view.getId() == R.id.spinner_resolution){
-            Resources r = getResources();
-            String[] resolution_array = r.getStringArray(R.array.resolutions_array);
-            resolution_selected = resolution_array[position];
-        }
+        String selection = (String)parent.getItemAtPosition(position);
+        if(selection.contains("x"))
+        {
+            resolution_selected = selection;
+        }else
+            fps_selected = Integer.parseInt(selection);
+        System.out.println((String)parent.getItemAtPosition(position));
+//        if(view.getId() == R.id.spinner_fps){
+//            Resources r = getResources();
+//            int[] fps_array = r.getIntArray(R.array.fps_array);
+//            fps_selected = fps_array[position];
+//            System.out.println("in view = spinner fps pos = "+position + fps_array);
+//        }else if (view.getId() == R.id.spinner_resolution){
+//            Resources r = getResources();
+//            String[] resolution_array = r.getStringArray(R.array.resolutions_array);
+//            resolution_selected = resolution_array[position];
+//            System.out.println("in view = spinner resolution pos = "+position + resolution_array);
+//        }
+        System.out.println("fps selected "+fps_selected + " resolution selected " + resolution_selected);
     }
 
     @Override

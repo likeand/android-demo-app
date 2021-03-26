@@ -27,6 +27,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -44,7 +47,26 @@ public class Utils {
   public static final String FORMAT_FPS = "%.1fFPS";
   public static final String SCORES_FORMAT = "%.2f";
 
-
+  public static void closeAndroidPDialog(){
+    try {
+      Class aClass = Class.forName("android.content.pm.PackageParser$Package");
+      Constructor declaredConstructor = aClass.getDeclaredConstructor(String.class);
+      declaredConstructor.setAccessible(true);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    try {
+      Class cls = Class.forName("android.app.ActivityThread");
+      Method declaredMethod = cls.getDeclaredMethod("currentActivityThread");
+      declaredMethod.setAccessible(true);
+      Object activityThread = declaredMethod.invoke(null);
+      Field mHiddenApiWarningShown = cls.getDeclaredField("mHiddenApiWarningShown");
+      mHiddenApiWarningShown.setAccessible(true);
+      mHiddenApiWarningShown.setBoolean(activityThread, true);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
   /*
   * @params rtmp_uri: uri with format like rtmp://ip[:port]/rtmp1/rtmp2
   * @return rtmp2
@@ -64,22 +86,29 @@ public class Utils {
             matrix, true);
   }
   public static void convertDis2Prob(String[] names, float[] dists){
-    float total = 0;
+
+    boolean end_flag = false;
     for (int i = 0; i < dists.length; i++){
-      if (dists[i] > distance_threshold){
+
+      if(end_flag)
+      {
         names[i] = "非已知船员";
         dists[i] = 0;
+      }else{
+        if (dists[i] > distance_threshold){
+          names[i] = "非已知船员";
+          dists[i] = 0;
+          end_flag = true;
+        }
+        else{
+          dists[i] = distance_threshold - dists[i];
+        }
       }
-      else{
-        dists[i] = distance_threshold - dists[i];
-        total += dists[i];
-      }
-
+      System.out.println("in convert dis 2 prob " + dists[i]);
     }
     for (int i = 0; i < dists.length; i++){
-      if (total > 0)
-        if (dists[i] != 0)
-          dists[i]/=total;
+      if (dists[i] != 0)
+        dists[i]/=distance_threshold;
     }
   }
 
@@ -239,8 +268,13 @@ public class Utils {
       dists[i] = calc_dist(unnamed.embedding, namedEmbeddings.get(i).embedding);
     }
     int[] topk_index = get_min_topk(dists, topk);
+    topk = min(dists.length, topk);
     NamedBox namedBox = new NamedBox();
     namedBox.id = namedEmbeddings.get(topk_index[0]).id;
+    for(int i = 0; i < Utils.TOP_K; i++){
+      namedBox.id_k[i] = "";
+      namedBox.prob_k[i] = 1;
+    }
     for(int i = 0; i < topk; i++){
       namedBox.id_k[i] = namedEmbeddings.get(topk_index[i]).id;
       namedBox.prob_k[i] = dists[topk_index[i]];
@@ -265,6 +299,7 @@ public class Utils {
    * 将@param array中的最小的@param k个元素的下标返回@return int[k]
    * */
   public static int[] get_min_topk(float[] array, int k) {
+    k  = min(k, array.length);
     if (array.length == 0){
       throw new ArrayIndexOutOfBoundsException("array len is 0");
     }
@@ -643,10 +678,14 @@ public static class NamedEmbedding{
     try{
       int x,y,w,h;
       x = (int) (bitmap.getWidth() * rect[0]);
+      x = max(0, x);
       y = (int) (bitmap.getHeight() * rect[1]);
+      y = max(0, y);
 
       w = (int) (bitmap.getWidth() * (rect[2]-rect[0]));
+      w = min(bitmap.getWidth() - x, w);
       h = (int) (bitmap.getHeight() * (rect[3]-rect[1]));
+      h = min(bitmap.getHeight() - y, h);
 
       return Bitmap.createBitmap(bitmap, x, y, w, h,null, false);
     }catch (IllegalArgumentException e)

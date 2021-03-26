@@ -355,7 +355,7 @@ public class GlassLocalActivity extends AppCompatActivity {
             Bitmap bitmap_c = null;
             bitmap_c = Utils.cropBitmap(bitmap, namedBox.rect);
             imageView.setImageBitmap(bitmap_c);
-            for (int i = 0; i < TOP_K; i++) {
+            for (int i = 0; i < namedBox.id_k.length; i++) {
                 final ResultRowView rowView = mResultRowViews[i];
                 rowView.nameTextView.setText(namedBox.id_k[i]);
                 rowView.scoreTextView.setText(String.format(Locale.US, SCORES_FORMAT,
